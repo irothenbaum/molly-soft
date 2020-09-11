@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Molly-soft</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
+
+    <script src="https://kit.fontawesome.com/f8650deef4.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans', Arial sans-serif;
+            background-color: white;
+        }
+
+        * {
+            transition: all 0.2s ease-out;
+        }
+
+        h1 {
+            margin-left: 0.5rem;
+        }
+
+        #main {
+            max-width: 1000px;
+            text-align: center;
+            margin: 0 auto;
+            padding: 1rem 0;
+        }
+
+        #header {
+            display: flex;
+            align-items: center;
+            text-align: center;
+        }
+
+        .drop-pad {
+            width: 80%;
+            height: 10rem;
+            margin: 1rem;
+            border-radius: 40px;
+            border: 5px dashed rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            color: rgba(0,0,0,0.5)
+        }
+
+        .drop-pad:hover, .drop-pad.hovered {
+            border-color: rgba(0,0,0,0.5);
+            color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .drop-pad div {
+            font-size: 18px;
+        }
+
+        .drop-pad div i {
+            margin-right: 0.5rem;
+            font-size: 1.2em
+        }
+
+        .drop-pad.disabled {
+            border-style: solid;
+            border-color: #40c057;
+            background-color: #d5ffda
+        }
+
+        #drop-pads {
+            display: flex;
+        }
+
+        button {
+            background-color: #40c057;
+            font-weight: bolder;
+            color: white;
+            padding: 8px 18px 8px 12px;
+            border-radius: 8px;
+            border:none;
+            border-bottom: 2px solid #148829;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #68de7d;
+        }
+
+        button[disabled] {
+            background-color: #9c9c9c;
+            color: #6b6b6b;
+            cursor: not-allowed;
+        }
+
+        #download-button i {
+            display: inline-block;
+            margin-right: 0.5rem;
+            font-size: 1.2em;
+        }
+
+        #output-container {
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            padding: 0;
+            margin: 1rem;
+            text-align: left;
+            border-spacing: 0;
+        }
+
+        thead {
+            background-color: #ff9966;
+        }
+
+        tr {
+            margin: 0;
+            padding: 0;
+        }
+
+        th, td {
+            margin: 0;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.3);
+        }
+
+        th {
+            border-color: #ca6330;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(0,0,0, 0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="main">
+    <section id="header">
+        <img style="height: 50px;" src="https://logos-download.com/wp-content/uploads/2016/02/Microsoft_box.png" />
+        <h1>
+            Molly-soft
+        </h1>
+    </section>
+    <section id="input-container">
+        <div id="drop-pads">
+            <div id="drop-pad-1" class="drop-pad" data-file-index="0">
+                <div>
+                    <i class="fa fa-file"></i>
+                    <span> Drag and drop file #1 </span>
+                </div>
+            </div>
+            <div id="drop-pad-2" class="drop-pad" data-file-index="1">
+                <div>
+                    <i class="fa fa-file"></i>
+                    <span> Drag and drop file #2 </span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <button id="inner-join-button" disabled="disabled">Inner join</button>
+        </div>
+    </section>
+
+    <section id="output-container">
+
+    </section>
+</div>
+
+<script type="text/javascript">
+    (function($) {
+
+        let $outputContainer;
+        let $button;
+        let files = {}
+
+        $(document).ready(function() {
+            $outputContainer = $('#output-container');
+            $button = $('#inner-join-button');
+
+            let $dropPads = $('.drop-pad');
+            $dropPads.on('dragover', function(e) {e.preventDefault(); $(this).addClass('hovered'); } );
+            $dropPads.on('dragleave', function(e) {e.preventDefault(); $(this).removeClass('hovered'); } );
+            $dropPads.on('drop', handleDropEvent);
+
+            $button.click(executeInnerJoin)
+        });
+
+        // -------------------------------------------------------------------------------
+        // Handling the file drop event
+        /**
+         * @param {*} e
+         */
+        function handleDropEvent(e) {
+            let $this = $(this);
+            if ($this.hasClass('disabled')) {
+                return
+            }
+            e.preventDefault();
+
+            let dataTransfer = e.originalEvent.dataTransfer;
+            let file;
+            if (dataTransfer.items) {
+                let item = [...dataTransfer.items].find(i => i.kind === 'file');
+                if (item) {
+                    file = item.getAsFile()
+                }
+            } else {
+                file = dataTransfer.files[0]
+            }
+
+            $this.addClass('disabled');
+            $this.text(file.name.substr(0, file.name.length-4))
+            let fileIndex = $this.attr('data-file-index')
+            loadFile(file, lines => {
+                files[fileIndex] = lines
+
+                if (Object.keys(files).length === 2) {
+                    $button.removeAttr('disabled')
+                }
+            })
+        }
+
+        // -------------------------------------------------------------------------------
+        // Load a generic file with a file
+
+        /**
+         * @param {File} file
+         * @param {function} callback
+         */
+        function loadFile(file, callback) {
+            let reader = new FileReader();
+
+            reader.onload = function () {
+                callback(reader.result.split('\n'))
+            };
+
+            reader.readAsText(file)
+        }
+
+        // -------------------------------------------------------------------------------
+        // Handle updating the UI with the new log information
+
+        function executeInnerJoin() {
+            // grab our files
+            let values = Object.values(files)
+
+            if (values.length < 2) {
+                return
+            }
+
+            $button.attr('disabled', 'disabled')
+
+            let file1 = values[0]
+            let file2 = values[1]
+
+            // conduct an inner join
+            let innerJoin = file1.filter(l => file2.includes(l))
+
+            // reduce to just the unique values
+            let uniques = [...(new Set(innerJoin))]
+
+            // create a download link
+            $outputContainer.append(renderDownloadLink(uniques));
+
+            // create a preview table
+            $outputContainer.append(renderPreview(uniques));
+
+        }
+
+        // -------------------------------------------------------------------------------
+        // Create the preview table
+
+        /**
+         * @param {Array<string>} lines
+         * @returns {*|jQuery|HTMLElement}
+         */
+        function renderPreview(lines) {
+            let $table = $('<table />');
+
+            let $head = $(`<thead><tr><th>Values (${lines.length})</th></tr></thead>`);
+
+            let $body = $('<tbody />');
+            $body.append(lines.map((l, index) => `<tr><td>${l}</td></tr>`));
+            $table.append([$head, $body]);
+
+            return $table
+        }
+
+        // -------------------------------------------------------------------------------
+        // Create the download link
+        /**
+         *
+         * @param {Array<string>} lines
+         */
+        function renderDownloadLink(lines) {
+            let button = $('<button id="download-button" />');
+            button.append($('<i class="fas fa-file-download" />'));
+            button.append($('<span>Download Spreadsheet</span>'));
+
+            button.click(() => {
+                let buffer = lines.join('\n')
+
+                let element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(buffer));
+                element.setAttribute('download', 'output' + '.csv');
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            });
+
+            return button
+        }
+
+    })(jQuery)
+</script>
+</body>
+</html>
