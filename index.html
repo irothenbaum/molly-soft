@@ -88,6 +88,8 @@
             border-bottom: 2px solid #148829;
             font-size: 18px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
         }
 
         button:hover {
@@ -98,6 +100,11 @@
             background-color: #9c9c9c;
             color: #6b6b6b;
             cursor: not-allowed;
+        }
+
+        button img {
+            width: 60px;
+            margin-right: 1rem;
         }
 
         #download-button i {
@@ -168,8 +175,14 @@
             </div>
         </div>
         <div>
-            <button id="inner-join-button" title="Find all people in both lists" disabled="disabled">Inner join</button>
-            <button id="outer-join-button" title="Find all people in list 1 that are not in list 2" disabled="disabled">Outer join</button>
+            <button id="inner-join-button" title="Find all people in both lists" disabled="disabled">
+                <img alt="Inner join diagram" src="./inner.png" />
+                Inner join
+            </button>
+            <button id="outer-join-button" title="Find all people in list 1 that are not in list 2" disabled="disabled">
+                <img alt="Left-outer join diagram" src="./left-outer.png" />
+                Left-outer join
+            </button>
         </div>
     </section>
 
