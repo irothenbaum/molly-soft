@@ -168,7 +168,8 @@
             </div>
         </div>
         <div>
-            <button id="inner-join-button" disabled="disabled">Inner join</button>
+            <button id="inner-join-button" title="Find all people in both lists" disabled="disabled">Inner join</button>
+            <button id="outer-join-button" title="Find all people in list 1 that are not in list 2" disabled="disabled">Outer join</button>
         </div>
     </section>
 
@@ -181,19 +182,25 @@
     (function($) {
 
         let $outputContainer;
-        let $button;
+        let $innerJoinButton;
+        let $outerJoinButton;
+        let $allButtons;
         let files = {}
 
         $(document).ready(function() {
             $outputContainer = $('#output-container');
-            $button = $('#inner-join-button');
+            $innerJoinButton = $('#inner-join-button');
+            $outerJoinButton = $('#outer-join-button');
+
+            $allButtons = $innerJoinButton.add($outerJoinButton);
 
             let $dropPads = $('.drop-pad');
             $dropPads.on('dragover', function(e) {e.preventDefault(); $(this).addClass('hovered'); } );
             $dropPads.on('dragleave', function(e) {e.preventDefault(); $(this).removeClass('hovered'); } );
             $dropPads.on('drop', handleDropEvent);
 
-            $button.click(executeInnerJoin)
+            $innerJoinButton.click(executeInnerJoin)
+            $outerJoinButton.click(executeOuterJoin)
         });
 
         // -------------------------------------------------------------------------------
@@ -226,7 +233,7 @@
                 files[fileIndex] = lines
 
                 if (Object.keys(files).length === 2) {
-                    $button.removeAttr('disabled')
+                    $allButtons.removeAttr('disabled')
                 }
             })
         }
@@ -259,16 +266,41 @@
                 return
             }
 
-            $button.attr('disabled', 'disabled')
+            $allButtons.attr('disabled', 'disabled')
 
             let file1 = values[0]
             let file2 = values[1]
 
-            // conduct an inner join
             let innerJoin = file1.filter(l => file2.includes(l))
 
             // reduce to just the unique values
             let uniques = [...(new Set(innerJoin))]
+
+            // create a download link
+            $outputContainer.append(renderDownloadLink(uniques));
+
+            // create a preview table
+            $outputContainer.append(renderPreview(uniques));
+
+        }
+
+        function executeOuterJoin() {
+            // grab our files
+            let values = Object.values(files)
+
+            if (values.length < 2) {
+                return
+            }
+
+            $allButtons.attr('disabled', 'disabled')
+
+            let file1 = values[0]
+            let file2 = values[1]
+
+            let outerJoin = file1.filter(l => !file2.includes(l))
+
+            // reduce to just the unique values
+            let uniques = [...(new Set(outerJoin))]
 
             // create a download link
             $outputContainer.append(renderDownloadLink(uniques));
