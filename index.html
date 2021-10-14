@@ -154,7 +154,7 @@
 
 <div id="main">
     <section id="header">
-        <img style="height: 50px;" src="https://logos-download.com/wp-content/uploads/2016/02/Microsoft_box.png" />
+        <img style="height: 50px;" src="https://cas.itopia.com/assets/images/itopia/windows.png" />
         <h1>
             Molly-soft
         </h1>
@@ -243,7 +243,7 @@
             $this.text(file.name.substr(0, file.name.length-4))
             let fileIndex = $this.attr('data-file-index')
             loadFile(file, lines => {
-                files[fileIndex] = lines
+                files[fileIndex] = lines.map(l => l.split(','))
 
                 if (Object.keys(files).length === 2) {
                     $allButtons.removeAttr('disabled')
@@ -284,16 +284,15 @@
             let file1 = values[0]
             let file2 = values[1]
 
-            let innerJoin = file1.filter(l => file2.includes(l))
+            let file2PrimaryColumns = file2.map(getPrimaryColumn)
 
-            // reduce to just the unique values
-            let uniques = [...(new Set(innerJoin))]
+            let innerJoin = file1.filter(l => file2PrimaryColumns.includes(getPrimaryColumn(l)))
 
             // create a download link
-            $outputContainer.append(renderDownloadLink(uniques));
+            $outputContainer.append(renderDownloadLink(innerJoin));
 
             // create a preview table
-            $outputContainer.append(renderPreview(uniques));
+            $outputContainer.append(renderPreview(innerJoin));
 
         }
 
@@ -310,16 +309,15 @@
             let file1 = values[0]
             let file2 = values[1]
 
-            let outerJoin = file1.filter(l => !file2.includes(l))
+            let file2PrimaryColumns = file2.map(getPrimaryColumn)
 
-            // reduce to just the unique values
-            let uniques = [...(new Set(outerJoin))]
+            let outerJoin = file1.filter(l => !file2PrimaryColumns.includes(getPrimaryColumn(l)))
 
             // create a download link
-            $outputContainer.append(renderDownloadLink(uniques));
+            $outputContainer.append(renderDownloadLink(outerJoin));
 
             // create a preview table
-            $outputContainer.append(renderPreview(uniques));
+            $outputContainer.append(renderPreview(outerJoin));
 
         }
 
@@ -369,6 +367,12 @@
             });
 
             return button
+        }
+
+        // -------------------------------------------------------------------------------
+        // Get primary columns from array of lines
+        function getPrimaryColumn(arr) {
+            return arr[0].trim()
         }
 
     })(jQuery)
